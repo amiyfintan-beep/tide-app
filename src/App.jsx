@@ -7,10 +7,11 @@ import {
   MessageCircle, Clock, 
   ArrowRight, HelpCircle, 
   Languages, School, Calculator, PlusCircle,
-  Building2, Tent, Utensils, Star, Smartphone
+  Building2, Tent, Utensils, Star, Smartphone,
+  Baby, GraduationCap, Bike, FileHeart
 } from 'lucide-react';
 
-// --- LIVE SUPABASE CONNECTION (YOUR KEYS) ---
+// --- LIVE SUPABASE CONNECTION ---
 const supabaseUrl = 'https://sljifarjqsdanumqvncl.supabase.co';
 const supabaseAnonKey = 'sb_publishable_7-5-eF554a-Rw-eTIRqyXA_1fywtPO0';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -68,7 +69,13 @@ const App = () => {
       nhif: "NHIF Support",
       mem: "Members",
       sch: "Scholarships",
-      students: "Students"
+      students: "Students",
+      children: "Children",
+      needs: "Needs",
+      motos: "Imam Motos",
+      imams: "Imams",
+      ustadhs: "Ustadhs",
+      madrasas: "Madrasas"
     },
     sw: {
       welcome: "As-Salaam Alaykum",
@@ -104,38 +111,73 @@ const App = () => {
       nhif: "Bima ya NHIF",
       mem: "Wanachama",
       sch: "Scholarships",
-      students: "Wanafunzi"
+      students: "Wanafunzi",
+      children: "Watoto",
+      needs: "Mahitaji",
+      motos: "Pikipiki za Maimamu",
+      imams: "Maimamu",
+      ustadhs: "Maustadhi",
+      madrasas: "Madrasa"
     }
   };
 
-  // --- MOCK DATA FOR LISTS ---
+  // --- DETAILED MOCK DATA ---
+  const detailedStats = {
+    total_200: 154200500,
+    registered: {
+      sheikhs: 142,
+      imams: 850,
+      ustadhs: 1240,
+      madrasas: 320,
+      masjids: 415,
+      members: "2.4M"
+    },
+    impact: {
+      scholarships: 450,
+      orphans_donated: 28,
+      zakat_beneficiaries: 12500,
+      nhif_cards: 340,
+      motorcycles: 15
+    }
+  };
+
   const directoryData = {
     masjid: [
-      { name: "Masjid Quba", loc: "Sinza", sub: "120 Students" },
-      { name: "Masjid Taqwa", loc: "Mbagala", sub: "350 Students" }
+      { id: 1, name: "Masjid Quba", loc: "Sinza, DSM", students: 120, hasMadrasa: true },
+      { id: 2, name: "Masjid Taqwa", loc: "Mbagala, DSM", students: 350, hasMadrasa: true },
+      { id: 3, name: "Masjid Nur", loc: "Arusha Mjini", students: 0, hasMadrasa: false }
     ],
     orphans: [
-      { name: "Al-Madina Center", loc: "Kigamboni", sub: "Needs: Rice, Oil" },
-      { name: "Ummah Care", loc: "Tanga", sub: "Needs: Medicine" }
+      { id: 1, name: "Al-Madina Center", loc: "Kigamboni", children: 145, needs: "Rice, Oil, Books" },
+      { id: 2, name: "Ummah Care", loc: "Tanga", children: 55, needs: "Medicine, Beds" }
     ],
     sheikhs: [
-      { name: "Sheikh Walid", loc: "Ilala", sub: "Fiqh & Mirath" },
-      { name: "Dr. Suleiman", loc: "Zanzibar", sub: "Islamic Finance" }
+      { id: 1, name: "Sheikh Walid", loc: "Ilala", spec: "Fiqh & Mirath" },
+      { id: 2, name: "Dr. Suleiman", loc: "Zanzibar", spec: "Islamic Finance" }
     ],
     waqf: [
-      { name: "Commercial Building", loc: "Kariakoo", sub: "Owner: Hajj Mussa" },
-      { name: "Water Well", loc: "Handeni", sub: "Community Pool" }
+      { id: 1, name: "Commercial Building", loc: "Kariakoo", owner: "Late Hajj Mussa" },
+      { id: 2, name: "Water Well", loc: "Handeni", owner: "TIDE Community Pool" }
+    ]
+  };
+
+  const scholarships = {
+    circular: [
+      { id: 1, title: "TIDE STEM Grant", institution: "UDSM / DIT", amount: "100% Tuition" },
+      { id: 2, title: "Azam Medical Fund", institution: "MUHAS", amount: "Full Support" },
+    ],
+    islamic: [
+      { id: 3, title: "Al-Azhar Scholarship", institution: "Egypt", amount: "Full Board" },
+      { id: 4, title: "Madrasa Teacher Grant", institution: "Local Markaz", amount: "Stipend" },
     ]
   };
 
   // --- LIVE FUNCTIONS ---
   const handleLiveSync = async (type, category = "General") => {
     setLoading(true);
-    // 1. Register User (If Phone Provided)
     if (regPhone) {
       await supabase.from('members').insert([{ full_name: regName, phone_number: regPhone, role: 'Donor' }]);
     }
-    // 2. Save Donation
     const { error } = await supabase.from('donations').insert([{ 
       donor_name: regName, amount: parseInt(amount) || 200, type: type, asnaf: category 
     }]);
@@ -212,23 +254,57 @@ const App = () => {
           </div>
         )}
 
-        {/* === IMPACT / STATS TAB === */}
+        {/* === IMPACT / STATS TAB (FIXED: SHOWS ALL ITEMS) === */}
         {activeTab === 'impact' && (
            <div className="p-5 space-y-6 animate-in fade-in pb-10">
               <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm text-center">
                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">{t[lang].total200}</p>
-                 <p className="text-3xl font-black text-emerald-600">154,200,500/=</p>
+                 <p className="text-3xl font-black text-emerald-600">{formatCurrency(detailedStats.total_200)}</p>
               </div>
-              <div className="grid grid-cols-2 gap-4 text-center">
-                 <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm"><p className="text-lg font-black">2.4M</p><p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">{t[lang].mem}</p></div>
-                 <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm"><p className="text-lg font-black">12.5k</p><p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">{t[lang].beneficiaries}</p></div>
-                 <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm"><p className="text-lg font-black">340</p><p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">{t[lang].nhif}</p></div>
-                 <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm"><p className="text-lg font-black">15</p><p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">Motorcycles</p></div>
+
+              {/* Registration Grid */}
+              <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm">
+                 <h3 className="font-bold text-sm mb-4 flex items-center gap-2 text-gray-800"><Users size={16}/> Registered Network</h3>
+                 <div className="grid grid-cols-2 gap-4">
+                    {Object.entries(detailedStats.registered).map(([key, val], i) => (
+                       <div key={i} className="bg-gray-50 p-3 rounded-2xl">
+                          <p className="text-xl font-black text-gray-800">{val}</p>
+                          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">{t[lang][key] || key}</p>
+                       </div>
+                    ))}
+                 </div>
+              </div>
+
+              {/* Impact Grid */}
+              <div className="bg-emerald-900 text-white p-6 rounded-[2rem] shadow-xl">
+                 <h3 className="font-bold text-sm mb-4 flex items-center gap-2 uppercase tracking-widest"><Activity size={16}/> {t[lang].impact}</h3>
+                 <div className="space-y-4">
+                    <div className="flex justify-between items-center border-b border-white/10 pb-2">
+                       <span className="text-xs opacity-70">{t[lang].sch}</span>
+                       <span className="font-black">{detailedStats.impact.scholarships}</span>
+                    </div>
+                    <div className="flex justify-between items-center border-b border-white/10 pb-2">
+                       <span className="text-xs opacity-70">{t[lang].orphans} Donated</span>
+                       <span className="font-black">{detailedStats.impact.orphans_donated}</span>
+                    </div>
+                    <div className="flex justify-between items-center border-b border-white/10 pb-2">
+                       <span className="text-xs opacity-70">{t[lang].beneficiaries} (Zakat)</span>
+                       <span className="font-black text-emerald-300">{detailedStats.impact.zakat_beneficiaries}</span>
+                    </div>
+                    <div className="flex justify-between items-center border-b border-white/10 pb-2">
+                       <span className="text-xs opacity-70">{t[lang].nhif}</span>
+                       <span className="font-black text-amber-400">{detailedStats.impact.nhif_cards}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                       <span className="text-xs opacity-70">{t[lang].motos}</span>
+                       <span className="font-black text-amber-400">{detailedStats.impact.motorcycles}</span>
+                    </div>
+                 </div>
               </div>
            </div>
         )}
 
-        {/* === UMMAH / CONNECT TAB === */}
+        {/* === UMMAH / CONNECT TAB (FIXED: SHOWS ALL DETAILS) === */}
         {activeTab === 'connect' && (
            <div className="p-4 space-y-5 animate-in fade-in">
               <div className="flex space-x-2 overflow-x-auto pb-2 no-scrollbar">
@@ -246,27 +322,72 @@ const App = () => {
                       <button onClick={() => setEduFilter('circular')} className={`flex-1 py-2.5 rounded-xl text-[10px] font-bold flex items-center justify-center gap-2 ${eduFilter === 'circular' ? 'bg-white shadow-sm text-emerald-700' : 'text-gray-500'}`}><School size={14}/> {t[lang].circular}</button>
                       <button onClick={() => setEduFilter('islamic')} className={`flex-1 py-2.5 rounded-xl text-[10px] font-bold flex items-center justify-center gap-2 ${eduFilter === 'islamic' ? 'bg-white shadow-sm text-emerald-700' : 'text-gray-500'}`}><BookOpen size={14}/> {t[lang].islamic}</button>
                    </div>
-                   {[1,2].map(i => (
-                     <div key={i} className="bg-white p-4 rounded-2xl border border-gray-100 flex justify-between items-center">
-                        <div><p className="text-xs font-bold">Scholarship #{i}</p><p className="text-[10px] text-gray-400">TIDE Global Fund</p></div>
+                   {scholarships[eduFilter].map(i => (
+                     <div key={i.id} className="bg-white p-4 rounded-2xl border border-gray-100 flex justify-between items-center">
+                        <div><p className="text-xs font-bold text-gray-800">{i.title}</p><p className="text-[10px] text-gray-400">{i.institution}</p></div>
                         <button className="bg-emerald-50 text-emerald-600 text-[10px] font-black px-4 py-2 rounded-xl uppercase">{t[lang].apply}</button>
                      </div>
                    ))}
                 </div>
              )}
 
-             {/* 2. Logic for Masjid, Orphans, Sheikhs, Waqf */}
-             {['masjid', 'orphans', 'sheikhs', 'waqf'].includes(connectTab) && (
+             {/* 2. Masjid Logic (Shows Madrasa & Students) */}
+             {connectTab === 'masjid' && (
+                <div className="space-y-3">
+                   {directoryData.masjid.map((m, i) => (
+                      <div key={i} className="bg-white p-5 rounded-3xl border border-gray-100">
+                         <div className="flex justify-between items-start mb-2">
+                             <h3 className="font-bold text-gray-800">{m.name}</h3>
+                             {m.hasMadrasa && <span className="bg-blue-50 text-blue-600 text-[9px] font-black px-2 py-1 rounded-md">MADRASA ACTIVE</span>}
+                         </div>
+                         <p className="text-[10px] text-gray-500 flex items-center gap-1 mb-3"><MapPin size={10}/> {m.loc}</p>
+                         <div className="bg-gray-50 p-3 rounded-2xl flex items-center gap-2">
+                            <GraduationCap size={16} className="text-gray-400"/>
+                            <div>
+                               <p className="text-[9px] font-bold text-gray-400 uppercase">{t[lang].students}</p>
+                               <p className="text-xs font-black text-gray-800">{m.students}</p>
+                            </div>
+                         </div>
+                      </div>
+                   ))}
+                </div>
+             )}
+
+             {/* 3. Orphans Logic (Shows Children & Needs) */}
+             {connectTab === 'orphans' && (
+                <div className="space-y-3">
+                   {directoryData.orphans.map((o, i) => (
+                      <div key={i} className="bg-white p-5 rounded-3xl border border-gray-100">
+                         <h3 className="font-bold text-gray-800 mb-2">{o.name}</h3>
+                         <div className="flex gap-4 mb-3">
+                            <div className="flex items-center gap-1 bg-emerald-50 px-2 py-1 rounded-lg">
+                               <Baby size={12} className="text-emerald-600"/>
+                               <span className="text-[10px] font-bold text-emerald-700">{o.children} {t[lang].children}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                               <MapPin size={12} className="text-gray-400"/>
+                               <span className="text-[10px] text-gray-500">{o.loc}</span>
+                            </div>
+                         </div>
+                         <div className="border-t pt-2">
+                            <p className="text-[9px] font-bold text-red-400 uppercase">{t[lang].needs}:</p>
+                            <p className="text-xs font-bold text-gray-700">{o.needs}</p>
+                         </div>
+                      </div>
+                   ))}
+                </div>
+             )}
+
+             {/* 4. Sheikhs & Waqf Logic */}
+             {['sheikhs', 'waqf'].includes(connectTab) && (
                 <div className="space-y-3">
                    {directoryData[connectTab]?.map((item, i) => (
-                      <div key={i} className="bg-white p-5 rounded-3xl border border-gray-100 flex justify-between items-center">
+                      <div key={i} className="bg-white p-5 rounded-3xl border border-gray-100 flex items-center gap-4">
+                         <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center"><User size={20} className="text-gray-400"/></div>
                          <div>
-                            <h3 className="font-bold text-gray-800 text-sm">{item.name}</h3>
-                            <p className="text-[10px] text-gray-400 flex items-center gap-1"><MapPin size={10}/> {item.loc}</p>
-                         </div>
-                         <div className="text-right">
-                             <span className="bg-emerald-50 text-emerald-700 text-[9px] font-black px-2 py-1 rounded-lg uppercase">{t[lang][connectTab]}</span>
-                             <p className="text-[9px] font-bold text-gray-500 mt-1">{item.sub}</p>
+                            <h3 className="font-bold text-sm text-gray-800">{item.name}</h3>
+                            <p className="text-[10px] text-emerald-600 font-bold uppercase">{item.sub}</p>
+                            <p className="text-[10px] text-gray-400">{item.loc}</p>
                          </div>
                       </div>
                    ))}
@@ -285,8 +406,8 @@ const App = () => {
                  { id: 'baraza', icon: MessageCircle, color: 'text-orange-500' }
               ].map(s => (
                  <div key={s.id} className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm text-center active:bg-emerald-50 transition-all">
-                    <div className="w-10 h-10 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-3"><s.icon size={20} className={s.color}/></div>
-                    <h4 className="font-black text-[10px] uppercase text-gray-800">{t[lang][s.id]}</h4>
+                    <div className="w-10 h-10 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-3"><s.icon size={20} className={s.color}/></div>
+                    <h4 className="font-black text-[9px] uppercase text-gray-800">{t[lang][s.id]}</h4>
                     <p className="text-[9px] text-gray-400 mt-1">Open Module</p>
                  </div>
               ))}
