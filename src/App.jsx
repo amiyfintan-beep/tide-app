@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import {
-  Wallet, Heart, Activity, Users, LayoutGrid,
-  Waves, MapPin, CheckCircle,
+import { 
+  Wallet, Heart, Activity, Users, LayoutGrid, 
+  Waves, MapPin, CheckCircle, 
   Globe, BookOpen, Scale, User,
-  MessageCircle, Clock,
-  ArrowRight, HelpCircle,
+  MessageCircle, Clock, 
+  ArrowRight, HelpCircle, 
   Languages, School, Calculator, PlusCircle,
   Building2, Tent, Utensils, Star, Smartphone,
-  Baby, GraduationCap, Bike, FileHeart
+  Baby, GraduationCap, Bike, FileHeart, Briefcase
 } from 'lucide-react';
 
 // --- LIVE SUPABASE CONNECTION ---
@@ -18,13 +18,13 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const App = () => {
   // --- STATE ---
-  const [lang, setLang] = useState('sw');
+  const [lang, setLang] = useState('sw'); 
   const [activeTab, setActiveTab] = useState('home');
-  const [connectTab, setConnectTab] = useState('education');
-  const [eduFilter, setEduFilter] = useState('circular');
+  const [connectTab, setConnectTab] = useState('education'); 
+  const [eduFilter, setEduFilter] = useState('circular'); 
   const [showDonateModal, setShowDonateModal] = useState(false);
   const [showZakatModal, setShowZakatModal] = useState(false);
-  const [zakatStep, setZakatStep] = useState(1);
+  const [zakatStep, setZakatStep] = useState(1); 
   const [amount, setAmount] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -76,7 +76,9 @@ const App = () => {
       motos: "Imam Motos",
       imams: "Imams",
       ustadhs: "Ustadhs",
-      madrasas: "Madrasas"
+      madrasas: "Madrasas",
+      waqfList: "Waqf Properties",
+      specialization: "Specialization"
     },
     sw: {
       welcome: "As-Salaam Alaykum",
@@ -118,11 +120,13 @@ const App = () => {
       motos: "Pikipiki za Maimamu",
       imams: "Maimamu",
       ustadhs: "Maustadhi",
-      madrasas: "Madrasa"
+      madrasas: "Madrasa",
+      waqfList: "Mali za Waqf",
+      specialization: "Utaalamu"
     }
   };
 
-  // --- HARD DATA (PRESERVED) ---
+  // --- HARD DATA ---
   const staticStats = {
     registered: { sheikhs: 142, imams: 850, ustadhs: 1240, madrasas: 320, masjids: 415, mem: "2.4M" },
     impact: { scholarships: 450, orphans_donated: 28, zakat_beneficiaries: 12500, nhif_cards: 340, motorcycles: 15 }
@@ -139,12 +143,14 @@ const App = () => {
       { id: 2, name: "Ummah Care", loc: "Tanga", children: 55, needs: "Medicine, Beds" }
     ],
     sheikhs: [
-      { id: 1, name: "Sheikh Walid", loc: "Ilala", spec: "Fiqh & Mirath" },
-      { id: 2, name: "Dr. Suleiman", loc: "Zanzibar", spec: "Islamic Finance" }
+      { id: 1, name: "Sheikh Walid Al-Hadi", loc: "Ilala, DSM", spec: "Fiqh & Mirath", available: "Mon-Thu" },
+      { id: 2, name: "Dr. Suleiman Juma", loc: "Zanzibar", spec: "Islamic Finance", available: "Online" },
+      { id: 3, name: "Ustadh Ramadhan", loc: "Mwanza", spec: "Qur'an & Tajweed", available: "Daily" }
     ],
     waqf: [
-      { id: 1, name: "Commercial Building", loc: "Kariakoo", owner: "Late Hajj Mussa" },
-      { id: 2, name: "Water Well", loc: "Handeni", owner: "TIDE Community Pool" }
+      { id: 1, name: "Commercial Plaza", loc: "Kariakoo", type: "Real Estate", income: "Education Fund" },
+      { id: 2, name: "Community Shamba", loc: "Handeni", type: "Agriculture", income: "Orphan Support" },
+      { id: 3, name: "TIDE HQ Building", loc: "Kinondoni", type: "Office", income: "Admin Ops" }
     ]
   };
 
@@ -192,7 +198,7 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] font-sans pb-24 max-w-md mx-auto relative flex flex-col shadow-2xl overflow-hidden">
-     
+      
       {/* HEADER */}
       <div className="bg-white pt-4 pb-2 px-4 border-b border-gray-100 sticky top-0 z-30 flex justify-between items-center shadow-sm">
         <div className="flex items-center gap-1 text-emerald-600">
@@ -205,7 +211,7 @@ const App = () => {
       </div>
 
       <div className="flex-1 overflow-y-auto">
-       
+        
         {/* === HOME TAB === */}
         {activeTab === 'home' && (
           <div className="animate-in fade-in">
@@ -225,7 +231,6 @@ const App = () => {
             </div>
 
             <div className="px-5 space-y-4">
-               {/* Live Counter on Home */}
                <div className="bg-white p-5 rounded-[2rem] border border-gray-100 shadow-sm text-center">
                   <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">{t[lang].total200}</p>
                   <p className="text-2xl font-black text-emerald-600">{formatCurrency(liveTotal)}</p>
@@ -259,7 +264,7 @@ const App = () => {
           </div>
         )}
 
-        {/* === FULL IMPACT / STATS TAB (FIXED: ALL ITEMS RESTORED) === */}
+        {/* === IMPACT TAB === */}
         {activeTab === 'impact' && (
            <div className="p-5 space-y-6 animate-in fade-in pb-10">
               <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm text-center">
@@ -267,7 +272,6 @@ const App = () => {
                  <p className="text-3xl font-black text-emerald-600">{formatCurrency(liveTotal)}</p>
               </div>
 
-              {/* Registered Network Section */}
               <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm">
                  <h3 className="font-bold text-sm mb-4 flex items-center gap-2 text-gray-800"><Users size={16}/> Registered Network</h3>
                  <div className="grid grid-cols-2 gap-4">
@@ -280,7 +284,6 @@ const App = () => {
                  </div>
               </div>
 
-              {/* Detailed Impact Report Section */}
               <div className="bg-emerald-900 text-white p-6 rounded-[2rem] shadow-xl">
                  <h3 className="font-bold text-sm mb-4 flex items-center gap-2 uppercase tracking-widest"><Activity size={16}/> {t[lang].impact}</h3>
                  <div className="space-y-4">
@@ -309,7 +312,7 @@ const App = () => {
            </div>
         )}
 
-        {/* === FULL UMMAH / CONNECT TAB (FIXED: ALL DETAILS RESTORED) === */}
+        {/* === UMMAH / CONNECT TAB (Sheikhs & Waqf restored) === */}
         {activeTab === 'connect' && (
            <div className="p-4 space-y-5 animate-in fade-in">
               <div className="flex space-x-2 overflow-x-auto pb-2 no-scrollbar">
@@ -327,7 +330,7 @@ const App = () => {
                       <button onClick={() => setEduFilter('islamic')} className={`flex-1 py-2.5 rounded-xl text-[10px] font-bold flex items-center justify-center gap-2 ${eduFilter === 'islamic' ? 'bg-white shadow-sm text-emerald-700' : 'text-gray-500'}`}><BookOpen size={14}/> {t[lang].islamic}</button>
                    </div>
                    {scholarships[eduFilter].map(i => (
-                     <div key={i.id} className="bg-white p-4 rounded-2xl border border-gray-100 flex justify-between items-center">
+                     <div key={i.id} className="bg-white p-4 rounded-2xl border border-gray-100 flex justify-between items-center shadow-sm">
                         <div><p className="text-xs font-bold text-gray-800">{i.title}</p><p className="text-[10px] text-gray-400">{i.inst} - {i.amt}</p></div>
                         <button className="bg-emerald-50 text-emerald-600 text-[10px] font-black px-4 py-2 rounded-xl uppercase">{t[lang].apply}</button>
                      </div>
@@ -372,10 +375,55 @@ const App = () => {
                    ))}
                 </div>
              )}
+
+             {connectTab === 'sheikhs' && (
+                <div className="space-y-3">
+                   {directoryData.sheikhs.map((s, i) => (
+                      <div key={i} className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm">
+                         <div className="flex items-center gap-4 mb-3">
+                            <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-700 font-bold">
+                               {s.name.charAt(7)}
+                            </div>
+                            <div>
+                               <h3 className="font-bold text-gray-800 text-sm">{s.name}</h3>
+                               <p className="text-[10px] text-gray-400 flex items-center gap-1"><MapPin size={10}/> {s.loc}</p>
+                            </div>
+                         </div>
+                         <div className="grid grid-cols-2 gap-2">
+                            <div className="bg-gray-50 p-2 rounded-xl">
+                               <p className="text-[8px] text-gray-400 uppercase font-bold">{t[lang].specialization}</p>
+                               <p className="text-[10px] font-black text-gray-700">{s.spec}</p>
+                            </div>
+                            <button className="bg-emerald-600 text-white text-[10px] font-black rounded-xl uppercase shadow-md">{t[lang].askSheikh}</button>
+                         </div>
+                      </div>
+                   ))}
+                </div>
+             )}
+
+             {connectTab === 'waqf' && (
+                <div className="space-y-3">
+                   {directoryData.waqf.map((w, i) => (
+                      <div key={i} className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm">
+                         <div className="flex justify-between items-center mb-3">
+                            <h3 className="font-bold text-gray-800 text-sm">{w.name}</h3>
+                            <Building2 size={16} className="text-amber-500" />
+                         </div>
+                         <p className="text-[10px] text-gray-400 mb-3 flex items-center gap-1"><MapPin size={10}/> {w.loc}</p>
+                         <div className="flex justify-between items-center bg-amber-50 p-3 rounded-2xl">
+                            <div>
+                               <p className="text-[8px] text-amber-800 uppercase font-black">Fund Allocation</p>
+                               <p className="text-[10px] font-bold text-amber-900">{w.income}</p>
+                            </div>
+                            <span className="text-[10px] bg-white px-3 py-1 rounded-lg font-black text-amber-600 shadow-sm">{w.type}</span>
+                         </div>
+                      </div>
+                   ))}
+                </div>
+             )}
            </div>
         )}
 
-        {/* === SERVICES TAB === */}
         {activeTab === 'services' && (
            <div className="p-5 grid grid-cols-2 gap-4 animate-in fade-in">
               {[
@@ -408,7 +456,7 @@ const App = () => {
         ))}
       </div>
 
-      {/* ZAKAT MODAL (WITH FULL STEPS & REGISTRATION) */}
+      {/* ZAKAT MODAL */}
       {showZakatModal && (
          <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-md flex items-end">
             <div className="bg-white w-full h-[85vh] rounded-t-[3rem] p-8 animate-in slide-in-from-bottom flex flex-col shadow-2xl">
@@ -454,7 +502,7 @@ const App = () => {
          </div>
       )}
 
-      {/* SADAKA MODAL (WITH REGISTRATION) */}
+      {/* SADAKA MODAL */}
       {showDonateModal && (
         <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-md flex items-end">
           <div className="bg-white w-full rounded-t-[3.5rem] p-10 shadow-2xl animate-in slide-in-from-bottom">
@@ -467,7 +515,7 @@ const App = () => {
                 <input type="tel" onChange={(e) => setRegPhone(e.target.value)} placeholder="Phone Number" className="w-full bg-gray-50 p-4 rounded-xl font-bold border-none text-sm" />
             </div>
             <button onClick={() => handleLiveSync('Sadaka', 'General')} className="w-full bg-emerald-600 text-white font-black py-6 rounded-full shadow-xl mb-4 uppercase tracking-widest text-sm">{loading ? '...' : t[lang].donate}</button>
-            <button onClick={() => setShowDonateModal(false)} className="w-full text-gray-400 text-[10px] font-black uppercase">Cancel</button>
+            <button onClick={() => setShowDonateModal(false)} className="w-full text-gray-400 text-[10px] font-black uppercase tracking-widest">Cancel</button>
           </div>
         </div>
       )}
