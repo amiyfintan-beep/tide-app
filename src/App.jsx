@@ -8,7 +8,7 @@ import {
   ArrowRight, HelpCircle, 
   Languages, School, Calculator, PlusCircle,
   Building2, Tent, Utensils, Star, Smartphone,
-  Baby, GraduationCap, Bike, FileHeart, Briefcase
+  Baby, GraduationCap, Bike, FileHeart, Briefcase, Phone
 } from 'lucide-react';
 
 // --- LIVE SUPABASE CONNECTION ---
@@ -29,10 +29,15 @@ const App = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Live Registration & DB States
+  // Live Data States
   const [regName, setRegName] = useState('');
   const [regPhone, setRegPhone] = useState('');
-  const [liveTotal, setLiveTotal] = useState(154200500);
+  const [liveTotal, setLiveTotal] = useState(154200500); // Global Total
+  
+  // New: Personal Totals & Sheikh Navigation
+  const [mySadaka, setMySadaka] = useState(0);
+  const [myZakat, setMyZakat] = useState(0);
+  const [selectedSpec, setSelectedSpec] = useState(null);
 
   // --- TRANSLATIONS ---
   const t = {
@@ -77,7 +82,6 @@ const App = () => {
       imams: "Imams",
       ustadhs: "Ustadhs",
       madrasas: "Madrasas",
-      waqfList: "Waqf Properties",
       specialization: "Specialization"
     },
     sw: {
@@ -121,7 +125,6 @@ const App = () => {
       imams: "Maimamu",
       ustadhs: "Maustadhi",
       madrasas: "Madrasa",
-      waqfList: "Mali za Waqf",
       specialization: "Utaalamu"
     }
   };
@@ -142,10 +145,27 @@ const App = () => {
       { id: 1, name: "Al-Madina Center", loc: "Kigamboni", children: 145, needs: "Rice, Oil, Books" },
       { id: 2, name: "Ummah Care", loc: "Tanga", children: 55, needs: "Medicine, Beds" }
     ],
+    // --- UPDATED SHEIKHS WITH CATEGORIES & PHONES ---
     sheikhs: [
-      { id: 1, name: "Sheikh Walid Al-Hadi", loc: "Ilala, DSM", spec: "Fiqh & Mirath", available: "Mon-Thu" },
-      { id: 2, name: "Dr. Suleiman Juma", loc: "Zanzibar", spec: "Islamic Finance", available: "Online" },
-      { id: 3, name: "Ustadh Ramadhan", loc: "Mwanza", spec: "Qur'an & Tajweed", available: "Daily" }
+      { 
+        category: "Fiqh & Mirath", 
+        list: [
+          { name: "Sheikh Walid Al-Hadi", loc: "Ilala, DSM", phone: "0712345678" },
+          { name: "Sheikh Othman Maalim", loc: "Tanga", phone: "0755123123" }
+        ]
+      },
+      { 
+        category: "Islamic Finance", 
+        list: [
+          { name: "Dr. Suleiman Juma", loc: "Zanzibar", phone: "0777000000" }
+        ]
+      },
+      { 
+        category: "Nikah & Family", 
+        list: [
+          { name: "Sheikh Kipozeo", loc: "Kinondoni", phone: "0713111222" }
+        ]
+      }
     ],
     waqf: [
       { id: 1, name: "Commercial Plaza", loc: "Kariakoo", type: "Real Estate", income: "Education Fund" },
@@ -165,18 +185,29 @@ const App = () => {
     ]
   };
 
-  // --- LIVE SYNC LOGIC ---
+  // --- LIVE SYNC LOGIC (UPDATED FOR PERSONAL TOTALS) ---
   const fetchLiveStats = async () => {
     try {
-      const { data } = await supabase.from('donations').select('amount');
-      if (data) {
-        const sum = data.reduce((acc, curr) => acc + (curr.amount || 0), 0);
+      // 1. Global Total
+      const { data: globalData } = await supabase.from('donations').select('amount');
+      if (globalData) {
+        const sum = globalData.reduce((acc, curr) => acc + (curr.amount || 0), 0);
         if (sum > 0) setLiveTotal(sum);
+      }
+      
+      // 2. Personal Totals (Only if Name is entered)
+      if (regName) {
+        const { data: myData } = await supabase.from('donations').select('amount, type').eq('donor_name', regName);
+        if (myData) {
+          setMySadaka(myData.filter(d => d.type === 'Sadaka').reduce((a, b) => a + (b.amount || 0), 0));
+          setMyZakat(myData.filter(d => d.type === 'Zakat').reduce((a, b) => a + (b.amount || 0), 0));
+        }
       }
     } catch (e) { console.error(e); }
   };
 
-  useEffect(() => { fetchLiveStats(); }, []);
+  // Fetch when app loads AND when regName changes
+  useEffect(() => { fetchLiveStats(); }, [regName]);
 
   const handleLiveSync = async (type, category = "General") => {
     setLoading(true);
@@ -218,14 +249,16 @@ const App = () => {
             <div className="bg-gradient-to-br from-emerald-800 to-emerald-600 text-white p-6 rounded-b-[2.5rem] shadow-lg mb-6">
               <p className="text-emerald-100 text-[10px] uppercase font-bold tracking-widest">{t[lang].welcome}</p>
               <h1 className="text-2xl font-black mb-6">{regName || "User"}</h1>
+              
+              {/* PERSONAL TOTALS CARD (UPDATED) */}
               <div className="bg-white text-gray-800 rounded-3xl p-5 shadow-xl flex divide-x divide-gray-100">
                 <div className="flex-1 text-center">
                   <p className="text-[10px] text-gray-400 uppercase font-black">{t[lang].mySadaka}</p>
-                  <p className="text-lg font-black text-emerald-600">--</p>
+                  <p className="text-lg font-black text-emerald-600">{formatCurrency(mySadaka)}</p>
                 </div>
                 <div className="flex-1 text-center">
                   <p className="text-[10px] text-gray-400 uppercase font-black">{t[lang].myZakat}</p>
-                  <p className="text-lg font-black text-amber-600">--</p>
+                  <p className="text-lg font-black text-amber-600">{formatCurrency(myZakat)}</p>
                 </div>
               </div>
             </div>
@@ -312,7 +345,7 @@ const App = () => {
            </div>
         )}
 
-        {/* === UMMAH / CONNECT TAB (Sheikhs & Waqf restored) === */}
+        {/* === UMMAH / CONNECT TAB === */}
         {activeTab === 'connect' && (
            <div className="p-4 space-y-5 animate-in fade-in">
               <div className="flex space-x-2 overflow-x-auto pb-2 no-scrollbar">
@@ -376,28 +409,44 @@ const App = () => {
                 </div>
              )}
 
+             {/* UPDATED SHEIKHS TAB */}
              {connectTab === 'sheikhs' && (
                 <div className="space-y-3">
-                   {directoryData.sheikhs.map((s, i) => (
-                      <div key={i} className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm">
-                         <div className="flex items-center gap-4 mb-3">
-                            <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-700 font-bold">
-                               {s.name.charAt(7)}
-                            </div>
-                            <div>
-                               <h3 className="font-bold text-gray-800 text-sm">{s.name}</h3>
-                               <p className="text-[10px] text-gray-400 flex items-center gap-1"><MapPin size={10}/> {s.loc}</p>
-                            </div>
-                         </div>
-                         <div className="grid grid-cols-2 gap-2">
-                            <div className="bg-gray-50 p-2 rounded-xl">
-                               <p className="text-[8px] text-gray-400 uppercase font-bold">{t[lang].specialization}</p>
-                               <p className="text-[10px] font-black text-gray-700">{s.spec}</p>
-                            </div>
-                            <button className="bg-emerald-600 text-white text-[10px] font-black rounded-xl uppercase shadow-md">{t[lang].askSheikh}</button>
-                         </div>
-                      </div>
-                   ))}
+                   {!selectedSpec ? (
+                     directoryData.sheikhs.map((group, i) => (
+                        <div key={i} onClick={() => setSelectedSpec(group)} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex justify-between items-center cursor-pointer active:scale-95 transition-all">
+                           <div className="flex items-center gap-4">
+                              <div className="bg-emerald-100 p-3 rounded-full text-emerald-700"><BookOpen size={20}/></div>
+                              <div>
+                                 <h3 className="font-bold text-gray-800">{group.category}</h3>
+                                 <p className="text-[10px] text-gray-400">{group.list.length} Sheikhs</p>
+                              </div>
+                           </div>
+                           <ArrowRight size={18} className="text-gray-300"/>
+                        </div>
+                     ))
+                   ) : (
+                     <div className="animate-in slide-in-from-right">
+                        <button onClick={() => setSelectedSpec(null)} className="mb-4 flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                           <ArrowRight className="rotate-180" size={14}/> Back to Categories
+                        </button>
+                        {selectedSpec.list.map((s, i) => (
+                           <div key={i} className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm mb-3">
+                              <div className="flex justify-between items-start mb-3">
+                                 <div>
+                                    <h3 className="font-bold text-gray-800">{s.name}</h3>
+                                    <p className="text-[10px] text-gray-400 flex items-center gap-1"><MapPin size={10}/> {s.loc}</p>
+                                 </div>
+                                 <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center font-bold text-gray-400">{s.name.charAt(7)}</div>
+                              </div>
+                              <div className="grid grid-cols-2 gap-3 mt-4">
+                                 <a href={`tel:${s.phone}`} className="bg-emerald-600 text-white py-3 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase"><Phone size={14}/> Call</a>
+                                 <a href={`sms:${s.phone}`} className="bg-white border border-emerald-600 text-emerald-600 py-3 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase"><MessageCircle size={14}/> SMS</a>
+                              </div>
+                           </div>
+                        ))}
+                     </div>
+                   )}
                 </div>
              )}
 
