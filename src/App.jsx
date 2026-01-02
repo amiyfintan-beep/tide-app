@@ -32,7 +32,7 @@ const App = () => {
   // Live Data States
   const [regName, setRegName] = useState('');
   const [regPhone, setRegPhone] = useState('');
-  const [liveTotal, setLiveTotal] = useState(100,000); // Global Total
+  const [liveTotal, setLiveTotal] = useState(10,000); // Global Total
   
   // New: Personal Totals & Sheikh Navigation
   const [mySadaka, setMySadaka] = useState(0);
